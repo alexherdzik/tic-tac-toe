@@ -1,37 +1,76 @@
 const gameboard = (() => {
-    const _boardElement = document.getElementById('gameboard');
-    const _board = new Array(9);
+    const _board = ["","","","","","","","",""];
     const markSquare = (index, mark) => {
         _board[index] = mark;
     };
-    const isSquareMarked = index => {
-        return typeof _board[index] !== 'undefined';
+
+    const getSquare = index => {
+        return _board[index];
     }
 
-    return {markSquare, isSquareMarked};
+    const isSquareMarked = index => {
+        return Boolean(getSquare(index));
+    }
+
+    const reset = () => {
+        for(let i = 0; i < _board.length; i++) {
+            _board[i] = "";
+        }
+    }
+
+    return {markSquare, getSquare, isSquareMarked, reset};
 })();
 
-const Player = (mark) => {
-    return {mark};
-}
-
-const displayController = ((gameboard) => {
+const view = (() => {
     const _boardSquares = Array.from(document.querySelectorAll('#gameboard .square'));
-    const markSquare = (index, mark) => {
-        _boardSqaures[index].textContent = mark;
-    }
     const _init = (() => {
         for (let i = 0; i < _boardSquares.length; i++) {
             _boardSquares[i].addEventListener('click', () => {
-                if (!gameboard.isSquareMarked(i)) {
-                    gameboard.markSquare(i, 'X');
-                    _boardSquares[i].textContent = 'X';
-                }
+                gameController.markSquare(i);
             });
         }
     })();
-    return {markSquare};
-})(gameboard);
 
-const playerX = Player('X');
-const playerO = Player('O');
+    const updateBoard = gameboard => {
+        for (let i = 0; i < _boardSquares.length; i++) {
+            _boardSquares[i].textContent = gameboard.getSquare(i);
+        }
+    }
+
+    return {updateBoard};
+})();
+
+const Player = (mark) => {
+    const _mark = mark;
+    const getMark = () => {
+        return _mark
+    }
+    return {getMark};
+}
+
+const gameController = ((gameboard, view) => {
+    const _playerX = Player('X');
+    const _playerO = Player('O');
+    let _round = 1;
+    let _currentPlayer = _playerX;
+
+    const _switchCurrentPlayer = () => {
+        _currentPlayer = (_currentPlayer === _playerX) ? _playerO : _playerX;
+    }
+
+    const markSquare = index => {
+        if (!gameboard.isSquareMarked(index)) {
+            gameboard.markSquare(index, _currentPlayer.getMark());
+            view.updateBoard(gameboard);
+            _round++;
+            _switchCurrentPlayer();
+        }
+    };
+
+    const reset = () => {
+        gameboard.reset();
+        view.updateBoard();
+    }
+
+    return {markSquare, reset};
+})(gameboard, view);
