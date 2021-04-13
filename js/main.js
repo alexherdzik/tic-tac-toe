@@ -23,12 +23,17 @@ const gameboard = (() => {
 
 const view = (() => {
     const _boardSquares = Array.from(document.querySelectorAll('#gameboard .square'));
+    const _resetBtn = document.getElementById('reset');
+    
     const _init = (() => {
         for (let i = 0; i < _boardSquares.length; i++) {
             _boardSquares[i].addEventListener('click', () => {
                 gameController.markSquare(i);
             });
         }
+        _resetBtn.addEventListener('click', () => {
+            gameController.reset()
+        });
     })();
 
     const updateBoard = gameboard => {
@@ -68,8 +73,10 @@ const gameController = ((gameboard, view) => {
     };
 
     const reset = () => {
+        _round = 1;
+        _currentPlayer = _playerX;
         gameboard.reset();
-        view.updateBoard();
+        view.updateBoard(gameboard);
     }
 
     return {markSquare, reset};
