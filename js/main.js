@@ -58,17 +58,22 @@ const gameController = ((gameboard, view) => {
     const _playerO = Player('O');
     let _round = 1;
     let _currentPlayer = _playerX;
+    let _gameOver = false;
 
     const _switchCurrentPlayer = () => {
         _currentPlayer = (_currentPlayer === _playerX) ? _playerO : _playerX;
     }
 
     const markSquare = index => {
-        if (!gameboard.isSquareMarked(index)) {
+        if (!_gameOver && !gameboard.isSquareMarked(index)) {
             gameboard.markSquare(index, _currentPlayer.getMark());
             view.updateBoard(gameboard);
-            if (_checkForWin()) {
+            if (_checkForWin(_currentPlayer.getMark())) {
+                _gameOver = true;
                 console.log('Winner');
+            } else if (_round === 9) {
+                _gameOver = true;
+                console.log('Draw')
             } else {
                 _round++;
                 _switchCurrentPlayer();
@@ -76,8 +81,7 @@ const gameController = ((gameboard, view) => {
         }
     };
 
-    const _checkForWin = () => {
-        const currentMark = _currentPlayer.getMark();
+    const _checkForWin = mark => {
         const winningBoards = [
             [0,1,2],
             [3,4,5],
@@ -89,12 +93,14 @@ const gameController = ((gameboard, view) => {
             [2,4,6]
         ];
 
-        return winningBoards.some(board => board.every(index => gameboard.getSquare(index) === currentMark));
+        return winningBoards.some(board => board.every(index => gameboard.getSquare(index) === mark));
     };
 
     const reset = () => {
         _round = 1;
         _currentPlayer = _playerX;
+        _gameOver = false;
+
         gameboard.reset();
         view.updateBoard(gameboard);
     }
