@@ -67,9 +67,29 @@ const gameController = ((gameboard, view) => {
         if (!gameboard.isSquareMarked(index)) {
             gameboard.markSquare(index, _currentPlayer.getMark());
             view.updateBoard(gameboard);
-            _round++;
-            _switchCurrentPlayer();
+            if (_checkForWin()) {
+                console.log('Winner');
+            } else {
+                _round++;
+                _switchCurrentPlayer();
+            }
         }
+    };
+
+    const _checkForWin = () => {
+        const currentMark = _currentPlayer.getMark();
+        const winningBoards = [
+            [0,1,2],
+            [3,4,5],
+            [6,7,8],
+            [0,3,6],
+            [1,4,7],
+            [2,5,8],
+            [0,4,8],
+            [2,4,6]
+        ];
+
+        return winningBoards.some(board => board.every(index => gameboard.getSquare(index) === currentMark));
     };
 
     const reset = () => {
