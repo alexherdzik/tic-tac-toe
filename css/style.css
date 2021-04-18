@@ -9,6 +9,13 @@ html, body {
     width: 100%;
 }
 
+.footer {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    width: 100%
+}
+
 .container {
     display: flex;
     flex-direction: column;

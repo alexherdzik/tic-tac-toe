@@ -22,6 +22,7 @@ const gameboard = (() => {
 })();
 
 const view = (() => {
+    const _message = document.getElementById('message');
     const _boardSquares = Array.from(document.querySelectorAll('#gameboard .square'));
     const _resetBtn = document.getElementById('reset');
     
@@ -42,7 +43,11 @@ const view = (() => {
         }
     }
 
-    return {updateBoard};
+    const setMessage = msg => {
+        _message.textContent = msg;
+    }
+
+    return {updateBoard, setMessage};
 })();
 
 const Player = (mark) => {
@@ -56,12 +61,13 @@ const Player = (mark) => {
 const gameController = ((gameboard, view) => {
     const _playerX = Player('X');
     const _playerO = Player('O');
-    let _round = 1;
-    let _currentPlayer = _playerX;
-    let _gameOver = false;
+    let _round;
+    let _currentPlayer;
+    let _gameOver;
 
     const _switchCurrentPlayer = () => {
         _currentPlayer = (_currentPlayer === _playerX) ? _playerO : _playerX;
+        view.setMessage(`Player ${_currentPlayer.getMark()}'s turn`);
     }
 
     const markSquare = index => {
@@ -70,10 +76,10 @@ const gameController = ((gameboard, view) => {
             view.updateBoard(gameboard);
             if (_checkForWin(_currentPlayer.getMark())) {
                 _gameOver = true;
-                console.log('Winner');
+                view.setMessage(`Player ${_currentPlayer.getMark()} wins!`);
             } else if (_round === 9) {
                 _gameOver = true;
-                console.log('Draw')
+                view.setMessage('Draw');
             } else {
                 _round++;
                 _switchCurrentPlayer();
@@ -103,7 +109,10 @@ const gameController = ((gameboard, view) => {
 
         gameboard.reset();
         view.updateBoard(gameboard);
+        view.setMessage(`Player ${_currentPlayer.getMark()}'s turn`);
     }
 
     return {markSquare, reset};
 })(gameboard, view);
+
+gameController.reset();
