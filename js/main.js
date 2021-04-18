@@ -50,17 +50,17 @@ const view = (() => {
     return {updateBoard, setMessage};
 })();
 
-const Player = (mark) => {
+const Player = (mark, isHuman) => {
     const _mark = mark;
-    const getMark = () => {
-        return _mark
-    }
-    return {getMark};
+    const _isHuman = isHuman;
+    const getMark = () => _mark;
+    const getIsHuman = () => _isHuman;
+    return {getMark, getIsHuman};
 }
 
 const gameController = ((gameboard, view) => {
-    const _playerX = Player('X');
-    const _playerO = Player('O');
+    const _playerX = Player('X', true);
+    const _playerO = Player('O', false);
     let _round;
     let _currentPlayer;
     let _gameOver;
@@ -68,6 +68,11 @@ const gameController = ((gameboard, view) => {
     const _switchCurrentPlayer = () => {
         _currentPlayer = (_currentPlayer === _playerX) ? _playerO : _playerX;
         view.setMessage(`Player ${_currentPlayer.getMark()}'s turn`);
+        
+        if (!_currentPlayer.getIsHuman()) {
+            // play AI round
+            _playAIRound();
+        }
     }
 
     const markSquare = index => {
@@ -86,6 +91,15 @@ const gameController = ((gameboard, view) => {
             }
         }
     };
+
+    const _playAIRound = () => {
+        let index;
+        do {
+            index = Math.floor(Math.random() * 9);
+        } while (gameboard.getSquare(index));
+
+        markSquare(index);
+    }
 
     const _checkForWin = mark => {
         const winningBoards = [
