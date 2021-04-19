@@ -1,16 +1,23 @@
 const gameboard = (() => {
     const _board = ["","","","","","","","",""];
+
+    const getBoard = () => _board;
+
+    const getAvailableMoves = () => {
+        const moves = [];
+        _board.forEach((square, index) => {
+            if (!Boolean(square)) moves.push(index);
+        });
+        return moves;
+    };
+
+    const getSquare = index => _board[index];
+
     const markSquare = (index, mark) => {
         _board[index] = mark;
     };
 
-    const getSquare = index => {
-        return _board[index];
-    }
-
-    const isSquareMarked = index => {
-        return Boolean(getSquare(index));
-    }
+    const isSquareMarked = index => Boolean(getSquare(index));
 
     const reset = () => {
         for(let i = 0; i < _board.length; i++) {
@@ -18,7 +25,7 @@ const gameboard = (() => {
         }
     }
 
-    return {markSquare, getSquare, isSquareMarked, reset};
+    return {getBoard, getAvailableMoves, getSquare, markSquare, isSquareMarked, reset};
 })();
 
 const view = (() => {
@@ -79,9 +86,10 @@ const gameController = ((gameboard, view) => {
         if (!_gameOver && !gameboard.isSquareMarked(index)) {
             gameboard.markSquare(index, _currentPlayer.getMark());
             view.updateBoard(gameboard);
-            if (_checkForWin(_currentPlayer.getMark())) {
+            const winner = _checkForWin();
+            if (winner) {
                 _gameOver = true;
-                view.setMessage(`Player ${_currentPlayer.getMark()} wins!`);
+                view.setMessage(`Player ${winner} wins!`);
             } else if (_round === 9) {
                 _gameOver = true;
                 view.setMessage('Draw');
@@ -93,15 +101,60 @@ const gameController = ((gameboard, view) => {
     };
 
     const _playAIRound = () => {
-        let index;
-        do {
-            index = Math.floor(Math.random() * 9);
-        } while (gameboard.getSquare(index));
+        let bestScore = -Infinity;
+        let bestMove;
+        const availableMoves = gameboard.getAvailableMoves();
 
-        markSquare(index);
-    }
+        availableMoves.forEach(move => {
+            gameboard.markSquare(move, "O");
+            let score = _minimax(gameboard, 0, false);
+            gameboard.markSquare(move, "");
 
-    const _checkForWin = mark => {
+            if (score > bestScore) {
+                bestScore = score;
+                bestMove = move;
+            }
+        });
+
+        markSquare(bestMove);
+    };
+
+    const _minimax = (gameboard, depth, isMaximizing) => {
+        const scores = {X: -10, O: 10};
+        let winner = _checkForWin();
+        if (winner) return scores[winner];
+        else if (gameboard.getAvailableMoves().length === 0) return 0;
+
+        if (isMaximizing) {
+            let bestScore = -Infinity;
+            const availableMoves = gameboard.getAvailableMoves();
+
+            availableMoves.forEach(move => {
+                gameboard.markSquare(move, "O");
+                let score = _minimax(gameboard, depth + 1, false);
+                gameboard.markSquare(move, "");
+
+                bestScore = Math.max(score, bestScore);
+            });
+
+            return bestScore;
+        } else {
+            let bestScore = Infinity;
+            const availableMoves = gameboard.getAvailableMoves();
+
+            availableMoves.forEach(move => {
+                gameboard.markSquare(move, "X");
+                let score = _minimax(gameboard, depth + 1, true);
+                gameboard.markSquare(move, "");
+
+                bestScore = Math.min(score, bestScore);
+            });
+
+            return bestScore;
+        }
+    };
+
+    const _checkForWin = () => {
         const winningBoards = [
             [0,1,2],
             [3,4,5],
@@ -113,7 +166,9 @@ const gameController = ((gameboard, view) => {
             [2,4,6]
         ];
 
-        return winningBoards.some(board => board.every(index => gameboard.getSquare(index) === mark));
+        if (winningBoards.some(board => board.every(index => gameboard.getSquare(index) === _playerX.getMark()))) return _playerX.getMark();
+        else if (winningBoards.some(board => board.every(index => gameboard.getSquare(index) === _playerO.getMark()))) return _playerO.getMark();
+        return;
     };
 
     const reset = () => {
